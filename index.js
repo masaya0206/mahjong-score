@@ -48,3 +48,84 @@ function renderRecent(){
 }
 if(!isConfigured) msg.textContent="Supabase接続前です。config.js を設定してください。";
 renderRecent();
+
+
+/* ---------- QR参加 ---------- */
+let qrScanner=null;
+
+function parseInviteQr(text){
+  try{
+    const u=new URL(text);
+    const code=(u.searchParams.get("room")||"").trim().toUpperCase();
+    if(!code) throw new Error();
+    return code;
+  }catch{
+    const raw=String(text||"").trim().toUpperCase();
+    if(/^[A-Z0-9]{6}$/.test(raw)) return raw;
+    throw new Error("この麻雀アプリの招待QRではありません。");
+  }
+}
+
+async function stopQrScanner(){
+  try{await qrScanner?.stop()}catch{}
+  try{qrScanner?.destroy()}catch{}
+  qrScanner=null;
+  const v=$("#qrVideo");
+  if(v?.srcObject){
+    v.srcObject.getTracks().forEach(t=>t.stop());
+    v.srcObject=null;
+  }
+}
+
+async function handleQrResult(result){
+  const raw=typeof result==="string"?result:(result?.data||"");
+  const code=parseInviteQr(raw);
+  $("#roomCode").value=code;
+  $("#qrStatus").textContent=`卓コード ${code} を読み取りました。`;
+  await stopQrScanner();
+  setTimeout(()=>$("#qrDialog").close(),350);
+  $("#joinName").focus();
+}
+
+$("#scanQrBtn")?.addEventListener("click",async()=>{
+  msg.textContent="";
+  $("#qrStatus").textContent="カメラを準備しています…";
+  $("#qrDialog").showModal();
+  try{
+    const mod=await import("https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/+esm");
+    const QrScanner=mod.default;
+    qrScanner=new QrScanner(
+      $("#qrVideo"),
+      result=>handleQrResult(result).catch(e=>$("#qrStatus").textContent=e.message),
+      {preferredCamera:"environment",highlightScanRegion:true,highlightCodeOutline:true,returnDetailedScanResult:true}
+    );
+    await qrScanner.start();
+    $("#qrStatus").textContent="QRコードを枠の中へ合わせてください。";
+  }catch(e){
+    $("#qrStatus").textContent="カメラを起動できません。写真から読み取るか、卓コードを入力してください。";
+  }
+});
+
+$("#closeQrBtn")?.addEventListener("click",async()=>{
+  await stopQrScanner();
+  $("#qrDialog").close();
+});
+
+$("#pickQrImageBtn")?.addEventListener("click",()=>$("#qrImageInput").click());
+$("#qrImageInput")?.addEventListener("change",async e=>{
+  const file=e.target.files?.[0];
+  if(!file) return;
+  $("#qrStatus").textContent="画像を読み取っています…";
+  try{
+    const mod=await import("https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/+esm");
+    const QrScanner=mod.default;
+    const result=await QrScanner.scanImage(file,{returnDetailedScanResult:true});
+    await handleQrResult(result);
+  }catch(err){
+    $("#qrStatus").textContent="QRコードを読み取れませんでした。";
+  }finally{
+    e.target.value="";
+  }
+});
+
+$("#qrDialog")?.addEventListener("close",()=>stopQrScanner());

@@ -32,7 +32,7 @@ function closeDialog(id){const d=$(id);if(d?.open)d.close()}
 async function loadAll(){
   const [{data:r,error:re},{data:m,error:me},{data:e,error:ee}]=await Promise.all([
     sb.from("mj_rooms").select("*").eq("id",roomId).single(),
-    sb.from("mj_room_members").select("id,room_id,name,seat_index,seat_label,score,joined_at,is_riichi").eq("room_id",roomId).order("seat_index"),
+    sb.from("mj_room_members").select("id,room_id,name,seat_index,seat_label,score,joined_at,is_riichi,is_yakitori").eq("room_id",roomId).order("seat_index"),
     sb.from("mj_score_events").select("id,room_id,event_type,label,created_at,operator_name").eq("room_id",roomId).order("created_at",{ascending:false}).limit(40)
   ]);
   if(re) throw re;if(me) throw me;if(ee) throw ee;
@@ -92,7 +92,10 @@ function render(){
         <button class="player-name-button" type="button" data-riichi-id="${m.id}">
           <span class="score-seat">${relativeLabel(pos)}・${m.seat_label}${m.seat_index===room.dealer_index?"・親":""}</span>
           <span class="score-name">${esc(m.name)}</span>
-          ${m.is_riichi?'<span class="riichi-badge">立直</span>':""}
+          <span class="status-badges">
+            ${m.is_riichi?'<span class="riichi-badge">立直</span>':""}
+            ${m.is_yakitori?'<span class="yakitori-badge">焼</span>':""}
+          </span>
         </button>
         <div class="score-number">${fmt(m.score)}</div>
         <div class="tap-hint">点数欄タップ：和了 / 長押し：条件</div>`;
