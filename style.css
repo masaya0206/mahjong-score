@@ -188,3 +188,10 @@ h2{font-size:20px;letter-spacing:-.02em;margin-top:2px}
   .table-center-meta{gap:6px;font-size:10px}
   .score-card.table-seat .score-number{font-size:20px}
 }
+
+
+/* ===== v1.5: between-games / session flow ===== */
+.wide-btn{width:100%;margin-top:10px}
+.no-top-margin{margin-top:0}
+#nextGameCard .rank-row strong:last-child{font-size:17px}
+#shuffleResultArea .member-pill{background:#f8fafc}

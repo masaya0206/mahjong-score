@@ -173,6 +173,38 @@
       </section>
     </section>
 
+    <section id="nextGameCard" class="card hidden">
+      <p class="kicker">NEXT GAME</p>
+      <h2 id="nextGameTitle">次の半荘</h2>
+      <p id="nextGameMessage" class="muted"></p>
+
+      <div id="sessionSummary" class="list"></div>
+
+      <div id="seatDecisionArea" class="hidden">
+        <div class="divider"></div>
+        <p class="kicker">SEAT DECISION</p>
+        <h2>親が一周しました</h2>
+        <div class="action-grid">
+          <button id="keepSeatsBtn" class="secondary-btn" type="button">この席のまま続ける</button>
+          <button id="shuffleSeatsBtn" class="secondary-btn" type="button">席替えして続ける</button>
+        </div>
+        <button id="endSessionBtn" class="danger-btn wide-btn" type="button">今日の対局を終了</button>
+      </div>
+
+      <div id="shuffleResultArea" class="hidden">
+        <div class="divider"></div>
+        <p class="kicker">SHUFFLED SEATS</p>
+        <h2>席替え結果</h2>
+        <div id="shuffleResult" class="list"></div>
+        <div class="action-grid">
+          <button id="reshuffleBtn" class="secondary-btn" type="button">もう一度シャッフル</button>
+          <button id="confirmShuffleBtn" class="primary-btn no-top-margin" type="button">この席順で開始</button>
+        </div>
+      </div>
+
+      <button id="startNextGameBtn" class="primary-btn hidden" type="button">次の半荘を開始</button>
+    </section>
+
     <section id="finishedCard" class="card hidden">
       <p class="kicker">FINISHED</p>
       <h2>この半荘は終了しました</h2>

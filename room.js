@@ -6,6 +6,7 @@ if(!roomId) location.href="./index.html";
 
 const session=roomSession(roomId);
 let room=null,members=[],events=[];
+let pendingShuffle=null;
 let roomChannel=null,memberChannel=null,eventChannel=null;
 const sb=requireSupabase();
 
@@ -34,9 +35,14 @@ function render(){
   $("#roomTitle").textContent=`卓 ${room.room_code}`;
   $("#roomCodeDisplay").textContent=room.room_code;
 
-  const waiting=room.status==="waiting", playing=room.status==="playing", finished=room.status==="finished";
+  const waiting=room.status==="waiting";
+  const playing=room.status==="playing";
+  const between=room.status==="between_games";
+  const finished=room.status==="finished";
+
   $("#waitingCard").classList.toggle("hidden",!waiting);
   $("#gameSection").classList.toggle("hidden",!playing);
+  $("#nextGameCard").classList.toggle("hidden",!between);
   $("#finishedCard").classList.toggle("hidden",!finished);
   $("#hostControls").classList.toggle("hidden",!isHost() || !playing);
 
@@ -98,6 +104,35 @@ function render(){
       d.innerHTML=`<strong>${esc(ev.label)}</strong><div class="muted">${new Date(ev.created_at).toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"})}</div>`;
       log.appendChild(d);
     });
+  }
+
+  if(between){
+    $("#roundLabel").textContent="BETWEEN GAMES";
+    const completed=Number(room.games_completed||0);
+    const starter=Number(room.next_starting_dealer_index||0);
+    const seatRoundComplete = completed>0 && completed%4===0;
+
+    $("#nextGameTitle").textContent=`${completed}半荘終了`;
+    $("#nextGameMessage").textContent=
+      `次の半荘は ${members.find(m=>m.seat_index===starter)?.name||"-"} が最初の親です。`;
+
+    const summary=$("#sessionSummary");
+    summary.innerHTML="";
+    const totals=[...(room.session_totals||[])];
+    if(totals.length){
+      totals.sort((a,b)=>Number(b.total)-Number(a.total)).forEach((x,i)=>{
+        const d=document.createElement("div");
+        d.className="rank-row";
+        d.innerHTML=`<span class="rank-badge">${i+1}</span><strong>${esc(x.name)}</strong><strong class="${Number(x.total)>=0?"positive":"negative"}">${Number(x.total)>=0?"+":""}${fmt(x.total)}</strong>`;
+        summary.appendChild(d);
+      });
+    }else{
+      summary.innerHTML=`<p class="muted">まだ集計はありません。</p>`;
+    }
+
+    $("#seatDecisionArea").classList.toggle("hidden",!seatRoundComplete || !isHost());
+    $("#startNextGameBtn").classList.toggle("hidden",seatRoundComplete || !isHost());
+    $("#shuffleResultArea").classList.add("hidden");
   }
 
   if(finished){
@@ -252,7 +287,7 @@ $("#drawNextBtn").addEventListener("click",()=>applyEvent("draw","流局・親�
 $("#nextRoundBtn").addEventListener("click",()=>applyEvent("manual_round","手動で次局",{},"next",false));
 $("#undoBtn").addEventListener("click",()=>hostRpc("mj_undo_last",{}));
 $("#finishBtn").addEventListener("click",async()=>{
-  if(confirm("この半荘を終了しますか？")) await hostRpc("mj_finish_room",{});
+  if(confirm("この半荘を終了しますか？")) await hostRpc("mj_finish_hand",{p_reason:"manual"});
 });
 document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
   document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));
@@ -304,8 +339,51 @@ async function applyEvent(type,label,deltas,advance,clearRiichi){
     p_room_id:roomId,p_host_key:session.hostKey,p_event_type:type,p_label:label,
     p_deltas:deltas,p_advance:advance,p_clear_riichi:clearRiichi
   });
-  if(error) showMsg(error.message);
+  if(error){
+    showMsg(error.message);
+    return;
+  }
+
+  // 誰かがマイナスになったらDB側でも自動終了するが、
+  // 即時反映を補助するため再読込。
+  await loadAll();
 }
+
+$("#startNextGameBtn")?.addEventListener("click",()=>hostRpc("mj_start_next_game",{}));
+
+$("#keepSeatsBtn")?.addEventListener("click",async()=>{
+  pendingShuffle=null;
+  await hostRpc("mj_continue_same_seats",{});
+});
+
+function makeShuffle(){
+  const shuffled=[...members].sort(()=>Math.random()-.5);
+  pendingShuffle=shuffled.map((m,i)=>({member_id:m.id,seat_index:i}));
+  const box=$("#shuffleResult");
+  box.innerHTML="";
+  shuffled.forEach((m,i)=>{
+    const label=["東","南","西","北"][i];
+    const d=document.createElement("div");
+    d.className="member-pill";
+    d.innerHTML=`<span><span class="seat">${label}</span><br><strong>${esc(m.name)}</strong></span>`;
+    box.appendChild(d);
+  });
+  $("#shuffleResultArea").classList.remove("hidden");
+}
+
+$("#shuffleSeatsBtn")?.addEventListener("click",makeShuffle);
+$("#reshuffleBtn")?.addEventListener("click",makeShuffle);
+
+$("#confirmShuffleBtn")?.addEventListener("click",async()=>{
+  if(!pendingShuffle) return;
+  await hostRpc("mj_apply_seat_shuffle",{p_seats:pendingShuffle});
+  pendingShuffle=null;
+});
+
+$("#endSessionBtn")?.addEventListener("click",async()=>{
+  if(confirm("今日の対局を終了しますか？")) await hostRpc("mj_end_session",{});
+});
+
 function subscribe(){
   roomChannel=sb.channel(`room-${roomId}`).on("postgres_changes",{event:"*",schema:"public",table:"mj_rooms",filter:`id=eq.${roomId}`},loadAll).subscribe();
   memberChannel=sb.channel(`members-${roomId}`).on("postgres_changes",{event:"*",schema:"public",table:"mj_room_members",filter:`room_id=eq.${roomId}`},loadAll).subscribe();
