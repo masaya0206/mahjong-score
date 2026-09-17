@@ -3,39 +3,33 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#111827">
+  <meta name="theme-color" content="#0f172a">
   <title>Mahjong Score</title>
-  <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <header class="app-header">
+  <header class="topbar">
     <div>
-      <p class="eyebrow">REAL MAHJONG SCORE</p>
+      <p class="kicker">REAL MAHJONG</p>
       <h1>麻雀スコア</h1>
     </div>
-    <a class="ghost-btn" href="./history.html">戦績</a>
+    <a class="text-link" href="./history.html">戦績</a>
   </header>
 
-  <main class="container stack">
-    <section class="card">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow">PLAYERS</p>
-          <h2>メンバー</h2>
-        </div>
-        <button id="addPlayerBtn" class="secondary-btn" type="button">＋ 追加</button>
-      </div>
-      <div id="playerList" class="player-list"></div>
+  <main class="shell stack">
+    <section class="hero-card">
+      <p class="kicker">SHARED TABLE</p>
+      <h2>みんなのスマホで、同じ卓を見る。</h2>
+      <p class="muted">親・局・本場・供託・4人の点数をSupabase Realtimeで同期します。</p>
     </section>
 
     <section class="card">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow">NEW GAME</p>
-          <h2>半荘を始める</h2>
-        </div>
-      </div>
-
+      <p class="kicker">HOST</p>
+      <h2>新しい卓を作る</h2>
+      <label class="field">
+        <span>あなたの名前</span>
+        <input id="createName" maxlength="20" placeholder="例：まさや" autocomplete="name">
+      </label>
       <label class="field">
         <span>開始持ち点</span>
         <select id="startingPoints">
@@ -43,37 +37,31 @@
           <option value="30000">30,000点</option>
         </select>
       </label>
+      <button id="createRoomBtn" class="primary-btn" type="button">卓を作る</button>
+    </section>
 
-      <p class="helper">参加する4人を選択してください。</p>
-      <div id="selectedCount" class="selection-count">0 / 4人選択</div>
-
-      <button id="startGameBtn" class="primary-btn" type="button" disabled>この4人で開始</button>
+    <section class="card">
+      <p class="kicker">JOIN</p>
+      <h2>卓に参加する</h2>
+      <label class="field">
+        <span>卓コード</span>
+        <input id="roomCode" maxlength="6" inputmode="text" autocapitalize="characters" placeholder="例：7K3M2Q">
+      </label>
+      <label class="field">
+        <span>あなたの名前</span>
+        <input id="joinName" maxlength="20" placeholder="例：大和" autocomplete="name">
+      </label>
+      <button id="joinRoomBtn" class="secondary-btn" type="button">参加する</button>
       <p id="homeMessage" class="message" aria-live="polite"></p>
     </section>
 
-    <section id="activeGameCard" class="card hidden">
-      <p class="eyebrow">ACTIVE</p>
-      <h2>進行中の半荘があります</h2>
-      <p id="activeGameText" class="helper"></p>
-      <a class="primary-btn link-btn" href="./game.html">対局画面へ戻る</a>
+    <section class="card">
+      <p class="kicker">RESUME</p>
+      <h2>この端末の最近の卓</h2>
+      <div id="recentRooms" class="list"></div>
     </section>
   </main>
 
-  <dialog id="playerDialog" class="dialog">
-    <form method="dialog" id="playerForm" class="dialog-card">
-      <div class="section-head">
-        <h2>メンバー追加</h2>
-        <button class="icon-btn" value="cancel" aria-label="閉じる">×</button>
-      </div>
-      <label class="field">
-        <span>名前</span>
-        <input id="playerName" maxlength="20" autocomplete="off" placeholder="例：まさや">
-      </label>
-      <button id="savePlayerBtn" class="primary-btn" type="submit" value="default">追加する</button>
-      <p id="playerDialogMessage" class="message" aria-live="polite"></p>
-    </form>
-  </dialog>
-
-  <script type="module" src="./js/index.js"></script>
+  <script type="module" src="./index.js"></script>
 </body>
 </html>
