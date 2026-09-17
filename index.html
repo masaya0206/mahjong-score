@@ -23,8 +23,8 @@
         <h2>ログイン / 初回登録</h2>
 
         <div class="mode-switch account-switch">
-          <button id="showLoginBtn" class="mode-btn active" type="button">ログイン</button>
-          <button id="showSignupBtn" class="mode-btn" type="button">初回登録</button>
+          <button id="showLoginBtn" class="mode-btn active" type="button" onclick="document.getElementById('loginArea').classList.remove('hidden');document.getElementById('signupArea').classList.add('hidden');this.classList.add('active');document.getElementById('showSignupBtn').classList.remove('active');">ログイン</button>
+          <button id="showSignupBtn" class="mode-btn" type="button" onclick="document.getElementById('signupArea').classList.remove('hidden');document.getElementById('loginArea').classList.add('hidden');this.classList.add('active');document.getElementById('showLoginBtn').classList.remove('active');">初回登録</button>
         </div>
 
         <div id="loginArea">
