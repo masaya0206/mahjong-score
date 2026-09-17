@@ -123,3 +123,187 @@ h1,h2,h3,p{margin:0}h1{font-size:22px}h2{font-size:20px}h3{font-size:15px}
   font-size:11px;
   font-weight:950;
 }
+
+
+/* ===== v1.8: compact mobile table layout ===== */
+
+/* 卓全体を中央へ集約し、視線移動を減らす */
+.table-board{
+  background:
+    radial-gradient(circle at center, #dfe9e6 0 34%, #e8edef 62%, #dfe5e8 100%);
+}
+
+/* 全席カードの基本サイズを揃える */
+.table-seat{
+  width: min(39vw, 250px);
+  min-height: 116px;
+  padding: 11px 12px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* 上下席を中央寄りへ */
+.table-seat.pos-top{
+  top: max(9vh, 72px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+.table-seat.pos-self{
+  bottom: max(7vh, 58px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* 左右席は中央の少し外側に置き、中央表示との重なりを解消 */
+.table-seat.pos-left{
+  left: 4.5vw;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.table-seat.pos-right{
+  right: 4.5vw;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* 中央表示を一回り小さく */
+.table-center{
+  width: 98px;
+  min-height: 92px;
+  border-radius: 16px;
+  padding: 8px 7px;
+  box-shadow: 0 6px 18px rgba(15,23,42,.14);
+}
+.table-center-label{
+  font-size: 8px;
+  letter-spacing: .12em;
+}
+.table-center>strong{
+  font-size: 21px;
+  margin-top: 1px;
+}
+.table-center-meta{
+  gap: 5px;
+  margin-top: 5px;
+  font-size: 9px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.table-center-meta b{
+  font-size: 11px;
+}
+.table-center small{
+  display:none;
+}
+
+/* カード内の情報優先順位を整理 */
+.player-name-button{
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "seat badge"
+    "name badge";
+  gap: 1px 6px;
+}
+.score-seat{
+  font-size: 10px;
+  line-height: 1.25;
+}
+.score-name{
+  font-size: 16px;
+  line-height: 1.2;
+}
+.score-number{
+  margin-top: 7px;
+  font-size: 27px;
+  line-height: 1;
+}
+.tap-hint{
+  display:none;
+}
+
+/* バッジを小さく整列 */
+.status-badges{
+  gap: 4px;
+  align-self: center;
+}
+.riichi-badge,
+.yakitori-badge{
+  min-width: 29px;
+  min-height: 27px;
+  padding: 4px 7px;
+  font-size: 10px;
+  border-radius: 999px;
+}
+
+/* 親・リーチの強調は残しつつ、主張しすぎない */
+.table-seat.dealer{
+  border-width: 2px;
+}
+.table-seat.riichi{
+  box-shadow: inset 0 3px 0 #dc2626;
+}
+
+/* iPhoneなど縦長スマホ */
+@media(max-width:520px){
+  .table-seat{
+    width: 38.5vw;
+    min-height: 108px;
+    padding: 10px 11px;
+  }
+
+  .table-seat.pos-top{
+    top: max(10vh, 76px);
+  }
+  .table-seat.pos-self{
+    bottom: max(8vh, 62px);
+  }
+
+  .table-seat.pos-left{
+    left: 3vw;
+  }
+  .table-seat.pos-right{
+    right: 3vw;
+  }
+
+  .score-name{
+    font-size: 15px;
+  }
+  .score-number{
+    font-size: 25px;
+  }
+
+  .table-center{
+    width: 92px;
+    min-height: 88px;
+  }
+  .table-center>strong{
+    font-size: 20px;
+  }
+}
+
+/* かなり狭い画面ではさらに少し縮める */
+@media(max-width:390px){
+  .table-seat{
+    width: 39vw;
+    min-height: 104px;
+    padding: 9px 10px;
+  }
+  .table-seat.pos-left{
+    left: 2vw;
+  }
+  .table-seat.pos-right{
+    right: 2vw;
+  }
+  .score-name{
+    font-size: 14px;
+  }
+  .score-number{
+    font-size: 23px;
+  }
+  .table-center{
+    width: 86px;
+    min-height: 84px;
+  }
+}
