@@ -8,16 +8,16 @@
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <header class="topbar room-topbar">
+  <header id="pageHeader" class="topbar room-topbar">
     <a class="text-link" href="./index.html">← ホーム</a>
     <div class="center-head">
       <p id="roundLabel" class="kicker">WAITING</p>
       <h1 id="roomTitle">卓</h1>
     </div>
-    <span id="liveBadge" class="live-badge">● LIVE</span>
+    <span class="live-badge">● LIVE</span>
   </header>
 
-  <main class="shell stack">
+  <main id="mainShell" class="shell stack">
     <section id="waitingCard" class="card hidden">
       <div class="split-head">
         <div>
@@ -34,142 +34,21 @@
       <button id="startGameBtn" class="primary-btn hidden" type="button">4人で対局開始</button>
     </section>
 
-    <section id="gameSection" class="hidden">
-      <section class="table-board" aria-label="麻雀卓の席配置">
+    <section id="gameSection" class="game-screen hidden">
+      <section class="table-board" aria-label="麻雀卓">
         <div id="scoreBoard" class="table-seats"></div>
-        <div class="table-center" aria-live="polite">
+
+        <button id="centerButton" class="table-center" type="button" aria-label="局情報とその他操作">
           <span class="table-center-label">CURRENT</span>
           <strong id="roundMini">東1</strong>
           <div class="table-center-meta">
             <span>本場 <b id="honbaLabel">0</b></span>
             <span>供託 <b id="riichiLabel">0</b></span>
           </div>
-        </div>
-      </section>
+          <small>タップで操作</small>
+        </button>
 
-      <section id="hostControls" class="card hidden">
-        <div class="split-head">
-          <div>
-            <p class="kicker">HOST CONTROL</p>
-            <h2>対局操作</h2>
-          </div>
-          <button id="undoBtn" class="small-btn" type="button">↶ 1手戻す</button>
-        </div>
-
-        <div class="tabs" role="group" aria-label="操作種別">
-          <button class="tab active" data-panel="ron" type="button">ロン</button>
-          <button class="tab" data-panel="tsumo" type="button">ツモ</button>
-          <button class="tab" data-panel="riichi" type="button">リーチ</button>
-          <button class="tab" data-panel="manual" type="button">手動</button>
-        </div>
-
-        <div id="panel-ron" class="op-panel">
-          <div class="two-col">
-            <label class="field"><span>和了者</span><select id="ronWinner"></select></label>
-            <label class="field"><span>放銃者</span><select id="ronLoser"></select></label>
-          </div>
-          <div class="two-col">
-            <label class="field">
-              <span>翻数</span>
-              <select id="ronHan">
-                <option value="1">1翻</option><option value="2">2翻</option>
-                <option value="3">3翻</option><option value="4">4翻</option>
-                <option value="5">5翻（満貫）</option><option value="6">6翻</option>
-                <option value="7">7翻</option><option value="8">8翻</option>
-                <option value="9">9翻</option><option value="10">10翻</option>
-                <option value="11">11翻</option><option value="12">12翻</option>
-                <option value="13">13翻以上（役満）</option>
-              </select>
-            </label>
-            <label class="field">
-              <span>符</span>
-              <select id="ronFu">
-                <option value="20">20符</option><option value="25">25符</option>
-                <option value="30" selected>30符</option><option value="40">40符</option>
-                <option value="50">50符</option><option value="60">60符</option>
-                <option value="70">70符</option><option value="80">80符</option>
-                <option value="90">90符</option><option value="100">100符</option>
-                <option value="110">110符</option>
-              </select>
-            </label>
-          </div>
-          <p id="ronPreview" class="muted">点数：-</p>
-          <label class="check"><input id="ronRenchan" type="checkbox"> 親連荘</label>
-          <button id="ronBtn" class="primary-btn" type="button">ロン確定</button>
-        </div>
-
-        <div id="panel-tsumo" class="op-panel hidden">
-          <label class="field"><span>和了者</span><select id="tsumoWinner"></select></label>
-          <div class="two-col">
-            <label class="field">
-              <span>翻数</span>
-              <select id="tsumoHan">
-                <option value="1">1翻</option><option value="2">2翻</option>
-                <option value="3">3翻</option><option value="4">4翻</option>
-                <option value="5">5翻（満貫）</option><option value="6">6翻</option>
-                <option value="7">7翻</option><option value="8">8翻</option>
-                <option value="9">9翻</option><option value="10">10翻</option>
-                <option value="11">11翻</option><option value="12">12翻</option>
-                <option value="13">13翻以上（役満）</option>
-              </select>
-            </label>
-            <label class="field">
-              <span>符</span>
-              <select id="tsumoFu">
-                <option value="20">20符</option><option value="25">25符</option>
-                <option value="30" selected>30符</option><option value="40">40符</option>
-                <option value="50">50符</option><option value="60">60符</option>
-                <option value="70">70符</option><option value="80">80符</option>
-                <option value="90">90符</option><option value="100">100符</option>
-                <option value="110">110符</option>
-              </select>
-            </label>
-          </div>
-          <p id="tsumoPreview" class="muted">支払い：-</p>
-          <label class="check"><input id="tsumoRenchan" type="checkbox"> 親連荘</label>
-          <button id="tsumoBtn" class="primary-btn" type="button">ツモ確定</button>
-        </div>
-
-        <div id="panel-riichi" class="op-panel hidden">
-          <label class="field"><span>リーチする人</span><select id="riichiPlayer"></select></label>
-          <div id="riichiStatusBox" class="riichi-confirm-box">
-            <div>
-              <span class="mini-label">点数</span>
-              <strong id="riichiScorePreview">-</strong>
-            </div>
-            <div>
-              <span class="mini-label">供託</span>
-              <strong id="riichiPotPreview">-</strong>
-            </div>
-          </div>
-          <p id="riichiHelp" class="muted">同じ局では1人1回だけリーチできます。</p>
-          <button id="riichiBtn" class="primary-btn" type="button">リーチを確定</button>
-        </div>
-
-        <div id="panel-manual" class="op-panel hidden">
-          <div class="two-col">
-            <label class="field"><span>支払う人</span><select id="manualFrom"></select></label>
-            <label class="field"><span>受け取る人</span><select id="manualTo"></select></label>
-          </div>
-          <label class="field"><span>点数</span><input id="manualPoints" type="number" min="100" step="100" inputmode="numeric" placeholder="例：1000"></label>
-          <button id="manualBtn" class="secondary-btn" type="button">点数移動</button>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="action-grid">
-          <button id="drawRenchanBtn" class="secondary-btn" type="button">流局・親連荘</button>
-          <button id="drawNextBtn" class="secondary-btn" type="button">流局・親流れ</button>
-          <button id="nextRoundBtn" class="secondary-btn" type="button">手動で次局</button>
-          <button id="finishBtn" class="danger-btn" type="button">半荘終了</button>
-        </div>
-        <p id="roomMessage" class="message" aria-live="polite"></p>
-      </section>
-
-      <section class="card">
-        <p class="kicker">EVENT LOG</p>
-        <h2>直近の操作</h2>
-        <div id="eventLog" class="list"></div>
+        <div id="roomToast" class="table-toast hidden" aria-live="polite"></div>
       </section>
     </section>
 
@@ -177,7 +56,6 @@
       <p class="kicker">NEXT GAME</p>
       <h2 id="nextGameTitle">次の半荘</h2>
       <p id="nextGameMessage" class="muted"></p>
-
       <div id="sessionSummary" class="list"></div>
 
       <div id="seatDecisionArea" class="hidden">
@@ -207,11 +85,157 @@
 
     <section id="finishedCard" class="card hidden">
       <p class="kicker">FINISHED</p>
-      <h2>この半荘は終了しました</h2>
+      <h2>今日の対局を終了しました</h2>
       <div id="finalRanking" class="list"></div>
       <a class="primary-btn link-btn" href="./history.html">戦績を見る</a>
     </section>
   </main>
+
+  <!-- リーチ確認 -->
+  <dialog id="riichiDialog" class="app-dialog">
+    <form method="dialog" class="dialog-panel">
+      <div class="dialog-head">
+        <div><p class="kicker">RIICHI</p><h2 id="riichiDialogTitle">リーチ</h2></div>
+        <button class="icon-btn" value="cancel" aria-label="閉じる">×</button>
+      </div>
+      <div class="confirm-grid">
+        <div><span>点数</span><strong id="riichiScoreText">-</strong></div>
+        <div><span>供託</span><strong id="riichiPotText">-</strong></div>
+      </div>
+      <p id="riichiDialogHelp" class="muted"></p>
+      <button id="confirmRiichiBtn" class="primary-btn" type="button">リーチを確定</button>
+    </form>
+  </dialog>
+
+  <!-- 和了 -->
+  <dialog id="winDialog" class="app-dialog">
+    <div class="dialog-panel">
+      <div class="dialog-head">
+        <div><p class="kicker">AGARI</p><h2 id="winDialogTitle">和了</h2></div>
+        <button id="closeWinBtn" class="icon-btn" type="button" aria-label="閉じる">×</button>
+      </div>
+
+      <div class="mode-switch">
+        <button id="modeRonBtn" class="mode-btn active" type="button">ロン</button>
+        <button id="modeTsumoBtn" class="mode-btn" type="button">ツモ</button>
+      </div>
+
+      <div class="two-col">
+        <label class="field">
+          <span>翻数</span>
+          <select id="winHan">
+            <option value="1">1翻</option><option value="2">2翻</option>
+            <option value="3" selected>3翻</option><option value="4">4翻</option>
+            <option value="5">5翻（満貫）</option><option value="6">6翻</option>
+            <option value="7">7翻</option><option value="8">8翻</option>
+            <option value="9">9翻</option><option value="10">10翻</option>
+            <option value="11">11翻</option><option value="12">12翻</option>
+            <option value="13">13翻以上（役満）</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>符</span>
+          <select id="winFu">
+            <option value="20">20符</option><option value="25">25符</option>
+            <option value="30" selected>30符</option><option value="40">40符</option>
+            <option value="50">50符</option><option value="60">60符</option>
+            <option value="70">70符</option><option value="80">80符</option>
+            <option value="90">90符</option><option value="100">100符</option>
+            <option value="110">110符</option>
+          </select>
+        </label>
+      </div>
+
+      <div id="loserArea">
+        <p class="dialog-label">放銃者</p>
+        <div id="loserButtons" class="player-choice-grid"></div>
+      </div>
+
+      <div id="winPreview" class="result-preview">点数：-</div>
+      <button id="confirmWinBtn" class="primary-btn" type="button">確定</button>
+    </div>
+  </dialog>
+
+  <!-- 中央その他操作 -->
+  <dialog id="utilityDialog" class="app-dialog">
+    <div class="dialog-panel">
+      <div class="dialog-head">
+        <div><p class="kicker">TABLE MENU</p><h2>その他操作</h2></div>
+        <button id="closeUtilityBtn" class="icon-btn" type="button" aria-label="閉じる">×</button>
+      </div>
+      <div class="utility-grid">
+        <button id="drawRenchanBtn" class="utility-btn" type="button">流局<br><small>親連荘</small></button>
+        <button id="drawNextBtn" class="utility-btn" type="button">流局<br><small>親流れ</small></button>
+        <button id="chomboBtn" class="utility-btn danger-lite" type="button">チョンボ</button>
+        <button id="manualBtn" class="utility-btn" type="button">点数修正</button>
+        <button id="historyBtn" class="utility-btn" type="button">操作履歴</button>
+        <button id="undoBtn" class="utility-btn" type="button">1手戻す</button>
+      </div>
+      <button id="finishBtn" class="danger-btn wide-btn host-only hidden" type="button">半荘を終了</button>
+    </div>
+  </dialog>
+
+  <!-- チョンボ -->
+  <dialog id="chomboDialog" class="app-dialog">
+    <div class="dialog-panel">
+      <div class="dialog-head">
+        <div><p class="kicker">CHOMBO</p><h2>チョンボ</h2></div>
+        <button id="closeChomboBtn" class="icon-btn" type="button">×</button>
+      </div>
+      <label class="field"><span>チョンボした人</span><select id="chomboPlayer"></select></label>
+      <label class="field">
+        <span>支払い方式</span>
+        <select id="chomboMode">
+          <option value="mangan" selected>満貫払い</option>
+          <option value="manual">手動指定</option>
+        </select>
+      </label>
+      <label id="chomboManualField" class="field hidden">
+        <span>合計支払い点</span>
+        <input id="chomboManualPoints" type="number" min="100" step="100" inputmode="numeric" placeholder="例：8000">
+      </label>
+      <p id="chomboPreview" class="result-preview">-</p>
+      <button id="confirmChomboBtn" class="primary-btn" type="button">チョンボを確定</button>
+    </div>
+  </dialog>
+
+  <!-- 手動点数修正 -->
+  <dialog id="manualDialog" class="app-dialog">
+    <div class="dialog-panel">
+      <div class="dialog-head">
+        <div><p class="kicker">ADJUST</p><h2>点数修正</h2></div>
+        <button id="closeManualBtn" class="icon-btn" type="button">×</button>
+      </div>
+      <div class="two-col">
+        <label class="field"><span>支払う人</span><select id="manualFrom"></select></label>
+        <label class="field"><span>受け取る人</span><select id="manualTo"></select></label>
+      </div>
+      <label class="field"><span>点数</span><input id="manualPoints" type="number" min="100" step="100" inputmode="numeric" placeholder="例：1000"></label>
+      <button id="confirmManualBtn" class="primary-btn" type="button">修正を確定</button>
+    </div>
+  </dialog>
+
+  <!-- 履歴 -->
+  <dialog id="historyDialog" class="app-dialog">
+    <div class="dialog-panel">
+      <div class="dialog-head">
+        <div><p class="kicker">EVENT LOG</p><h2>操作履歴</h2></div>
+        <button id="closeHistoryBtn" class="icon-btn" type="button">×</button>
+      </div>
+      <div id="eventLog" class="list"></div>
+    </div>
+  </dialog>
+
+  <!-- 長押し順位条件 -->
+  <dialog id="assistDialog" class="app-dialog">
+    <div class="dialog-panel">
+      <div class="dialog-head">
+        <div><p class="kicker">RANK ASSIST</p><h2 id="assistTitle">点差・逆転条件</h2></div>
+        <button id="closeAssistBtn" class="icon-btn" type="button">×</button>
+      </div>
+      <div id="assistContent"></div>
+    </div>
+  </dialog>
 
   <script type="module" src="./room.js"></script>
 </body>
