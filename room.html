@@ -35,13 +35,17 @@
     </section>
 
     <section id="gameSection" class="hidden">
-      <section class="game-status">
-        <div><span>局</span><strong id="roundMini">東1</strong></div>
-        <div><span>本場</span><strong id="honbaLabel">0</strong></div>
-        <div><span>供託</span><strong id="riichiLabel">0</strong></div>
+      <section class="table-board" aria-label="麻雀卓の席配置">
+        <div id="scoreBoard" class="table-seats"></div>
+        <div class="table-center" aria-live="polite">
+          <span class="table-center-label">CURRENT</span>
+          <strong id="roundMini">東1</strong>
+          <div class="table-center-meta">
+            <span>本場 <b id="honbaLabel">0</b></span>
+            <span>供託 <b id="riichiLabel">0</b></span>
+          </div>
+        </div>
       </section>
-
-      <section id="scoreBoard" class="score-grid"></section>
 
       <section id="hostControls" class="card hidden">
         <div class="split-head">
@@ -127,8 +131,19 @@
         </div>
 
         <div id="panel-riichi" class="op-panel hidden">
-          <label class="field"><span>リーチした人</span><select id="riichiPlayer"></select></label>
-          <button id="riichiBtn" class="primary-btn" type="button">リーチ -1,000点</button>
+          <label class="field"><span>リーチする人</span><select id="riichiPlayer"></select></label>
+          <div id="riichiStatusBox" class="riichi-confirm-box">
+            <div>
+              <span class="mini-label">点数</span>
+              <strong id="riichiScorePreview">-</strong>
+            </div>
+            <div>
+              <span class="mini-label">供託</span>
+              <strong id="riichiPotPreview">-</strong>
+            </div>
+          </div>
+          <p id="riichiHelp" class="muted">同じ局では1人1回だけリーチできます。</p>
+          <button id="riichiBtn" class="primary-btn" type="button">リーチを確定</button>
         </div>
 
         <div id="panel-manual" class="op-panel hidden">

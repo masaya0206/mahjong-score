@@ -59,10 +59,28 @@ function render(){
     $("#riichiLabel").textContent=room.riichi_sticks;
 
     const board=$("#scoreBoard");board.innerHTML="";
+    const viewerMemberId=session?.memberId || members[0]?.id;
+    const viewer=members.find(m=>m.id===viewerMemberId) || members[0];
+    const baseSeat=viewer?.seat_index ?? 0;
+    const relativePos = (seatIndex)=>{
+      const diff=(seatIndex-baseSeat+4)%4;
+      return diff===0?"self":diff===1?"right":diff===2?"top":"left";
+    };
+    const relativeLabel = pos => ({self:"自分",right:"下家",top:"対面",left:"上家"}[pos] || "");
+
     members.forEach(m=>{
+      const pos=relativePos(m.seat_index);
       const c=document.createElement("article");
-      c.className=`score-card ${m.seat_index===room.dealer_index?"dealer":""}`;
-      c.innerHTML=`<div class="score-head"><div><div class="score-seat">${m.seat_label}${m.seat_index===room.dealer_index?"・親":""}</div><div class="score-name">${esc(m.name)}</div></div></div><div class="score-number">${fmt(m.score)}</div>`;
+      c.className=`score-card table-seat pos-${pos} ${m.seat_index===room.dealer_index?"dealer":""} ${m.is_riichi?"riichi":""}`;
+      c.innerHTML=`
+        <div class="score-head">
+          <div>
+            <div class="score-seat">${relativeLabel(pos)}・${m.seat_label}${m.seat_index===room.dealer_index?"・親":""}</div>
+            <div class="score-name">${esc(m.name)}</div>
+          </div>
+          ${m.is_riichi?'<span class="riichi-badge">立直</span>':""}
+        </div>
+        <div class="score-number">${fmt(m.score)}</div>`;
       board.appendChild(c);
     });
 
@@ -71,6 +89,7 @@ function render(){
       const el=$(s), old=el.value; el.innerHTML=html; if(old) el.value=old;
     });
     updateScorePreview();
+    updateRiichiPreview();
 
     const log=$("#eventLog");log.innerHTML="";
     if(!events.length) log.innerHTML=`<p class="muted">まだ操作はありません。</p>`;
@@ -106,7 +125,14 @@ $("#copyInviteBtn").addEventListener("click",async()=>{
   catch{prompt("このURLを共有してください",url);}
 });
 $("#startGameBtn").addEventListener("click",()=>hostRpc("mj_start_room",{}));
-$("#riichiBtn").addEventListener("click",()=>hostRpc("mj_riichi",{p_member_id:$("#riichiPlayer").value}));
+$("#riichiBtn").addEventListener("click",async()=>{
+  const memberId=$("#riichiPlayer").value;
+  const member=members.find(m=>m.id===memberId);
+  if(!member) return showMsg("リーチする人を選択してください。");
+  if(member.is_riichi) return showMsg(`${member.name}はこの局ですでにリーチしています。`);
+  if(member.score<1000) return showMsg("持ち点が1000点未満のためリーチできません。");
+  await hostRpc("mj_riichi",{p_member_id:memberId});
+});
 $("#manualBtn").addEventListener("click",async()=>{
   const from=$("#manualFrom").value,to=$("#manualTo").value,points=Number($("#manualPoints").value);
   if(from===to || !(points>0)) return showMsg("入力を確認してください。");
@@ -220,6 +246,7 @@ $("#tsumoBtn").addEventListener("click",async()=>{
 ["#ronWinner","#ronHan","#ronFu","#tsumoWinner","#tsumoHan","#tsumoFu"].forEach(s=>{
   $(s)?.addEventListener("change",updateScorePreview);
 });
+$("#riichiPlayer")?.addEventListener("change",updateRiichiPreview);
 $("#drawRenchanBtn").addEventListener("click",()=>applyEvent("draw","流局・親連荘",{},"continue",false));
 $("#drawNextBtn").addEventListener("click",()=>applyEvent("draw","流局・親流れ",{},"next",false));
 $("#nextRoundBtn").addEventListener("click",()=>applyEvent("manual_round","手動で次局",{},"next",false));
@@ -233,6 +260,36 @@ document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{
   $(`#panel-${b.dataset.panel}`).classList.remove("hidden");
 }));
 function nameOf(id){return members.find(x=>x.id===id)?.name||""}
+
+function updateRiichiPreview(){
+  const select=$("#riichiPlayer");
+  const button=$("#riichiBtn");
+  const help=$("#riichiHelp");
+  if(!select || !button || !members.length || !room) return;
+
+  const member=members.find(m=>m.id===select.value) || members[0];
+  if(!member) return;
+
+  $("#riichiScorePreview").textContent =
+    member.is_riichi ? `${fmt(member.score)}点（立直済）` : `${fmt(member.score)} → ${fmt(member.score-1000)}点`;
+  $("#riichiPotPreview").textContent =
+    member.is_riichi ? `${room.riichi_sticks}本` : `${room.riichi_sticks} → ${room.riichi_sticks+1}本`;
+
+  if(member.is_riichi){
+    help.textContent="この局ですでにリーチしています。";
+    button.disabled=true;
+    button.textContent="立直済み";
+  }else if(member.score<1000){
+    help.textContent="持ち点が1000点未満のためリーチできません。";
+    button.disabled=true;
+    button.textContent="リーチできません";
+  }else{
+    help.textContent="同じ局では1人1回だけリーチできます。";
+    button.disabled=false;
+    button.textContent="リーチを確定";
+  }
+}
+
 function showMsg(t){$("#roomMessage").textContent=t}
 async function hostRpc(fn,args){
   showMsg("");
