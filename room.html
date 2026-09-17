@@ -64,7 +64,32 @@
             <label class="field"><span>和了者</span><select id="ronWinner"></select></label>
             <label class="field"><span>放銃者</span><select id="ronLoser"></select></label>
           </div>
-          <label class="field"><span>点数</span><input id="ronPoints" type="number" min="100" step="100" inputmode="numeric" placeholder="例：7700"></label>
+          <div class="two-col">
+            <label class="field">
+              <span>翻数</span>
+              <select id="ronHan">
+                <option value="1">1翻</option><option value="2">2翻</option>
+                <option value="3">3翻</option><option value="4">4翻</option>
+                <option value="5">5翻（満貫）</option><option value="6">6翻</option>
+                <option value="7">7翻</option><option value="8">8翻</option>
+                <option value="9">9翻</option><option value="10">10翻</option>
+                <option value="11">11翻</option><option value="12">12翻</option>
+                <option value="13">13翻以上（役満）</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>符</span>
+              <select id="ronFu">
+                <option value="20">20符</option><option value="25">25符</option>
+                <option value="30" selected>30符</option><option value="40">40符</option>
+                <option value="50">50符</option><option value="60">60符</option>
+                <option value="70">70符</option><option value="80">80符</option>
+                <option value="90">90符</option><option value="100">100符</option>
+                <option value="110">110符</option>
+              </select>
+            </label>
+          </div>
+          <p id="ronPreview" class="muted">点数：-</p>
           <label class="check"><input id="ronRenchan" type="checkbox"> 親連荘</label>
           <button id="ronBtn" class="primary-btn" type="button">ロン確定</button>
         </div>
@@ -72,10 +97,31 @@
         <div id="panel-tsumo" class="op-panel hidden">
           <label class="field"><span>和了者</span><select id="tsumoWinner"></select></label>
           <div class="two-col">
-            <label class="field"><span>子の支払い</span><input id="tsumoChild" type="number" min="100" step="100" inputmode="numeric" placeholder="例：1000"></label>
-            <label class="field"><span>親の支払い</span><input id="tsumoDealer" type="number" min="100" step="100" inputmode="numeric" placeholder="例：2000"></label>
+            <label class="field">
+              <span>翻数</span>
+              <select id="tsumoHan">
+                <option value="1">1翻</option><option value="2">2翻</option>
+                <option value="3">3翻</option><option value="4">4翻</option>
+                <option value="5">5翻（満貫）</option><option value="6">6翻</option>
+                <option value="7">7翻</option><option value="8">8翻</option>
+                <option value="9">9翻</option><option value="10">10翻</option>
+                <option value="11">11翻</option><option value="12">12翻</option>
+                <option value="13">13翻以上（役満）</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>符</span>
+              <select id="tsumoFu">
+                <option value="20">20符</option><option value="25">25符</option>
+                <option value="30" selected>30符</option><option value="40">40符</option>
+                <option value="50">50符</option><option value="60">60符</option>
+                <option value="70">70符</option><option value="80">80符</option>
+                <option value="90">90符</option><option value="100">100符</option>
+                <option value="110">110符</option>
+              </select>
+            </label>
           </div>
-          <p class="muted">親ツモなら「子の支払い」だけ入力します。</p>
+          <p id="tsumoPreview" class="muted">支払い：-</p>
           <label class="check"><input id="tsumoRenchan" type="checkbox"> 親連荘</label>
           <button id="tsumoBtn" class="primary-btn" type="button">ツモ確定</button>
         </div>

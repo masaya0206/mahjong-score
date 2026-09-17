@@ -70,6 +70,7 @@ function render(){
     ["#ronWinner","#ronLoser","#tsumoWinner","#riichiPlayer","#manualFrom","#manualTo"].forEach(s=>{
       const el=$(s), old=el.value; el.innerHTML=html; if(old) el.value=old;
     });
+    updateScorePreview();
 
     const log=$("#eventLog");log.innerHTML="";
     if(!events.length) log.innerHTML=`<p class="muted">まだ操作はありません。</p>`;
@@ -111,25 +112,113 @@ $("#manualBtn").addEventListener("click",async()=>{
   if(from===to || !(points>0)) return showMsg("入力を確認してください。");
   await applyEvent("manual",`${nameOf(from)} → ${nameOf(to)} ${fmt(points)}点`,{[from]:-points,[to]:points},"none",false);
 });
+function ceil100(n){ return Math.ceil(n/100)*100; }
+
+function basicPoints(han,fu){
+  han=Number(han); fu=Number(fu);
+  if(han>=13) return 8000;       // 役満
+  if(han>=11) return 6000;       // 三倍満
+  if(han>=8) return 4000;        // 倍満
+  if(han>=6) return 3000;        // 跳満
+  if(han===5) return 2000;       // 満貫
+  return Math.min(fu * Math.pow(2,han+2), 2000);
+}
+
+function calcRon(han,fu,isDealer){
+  const basic=basicPoints(han,fu);
+  return ceil100(basic*(isDealer?6:4));
+}
+
+function calcTsumo(han,fu,isDealer){
+  const basic=basicPoints(han,fu);
+  if(isDealer){
+    return {child:ceil100(basic*2),dealer:0};
+  }
+  return {child:ceil100(basic),dealer:ceil100(basic*2)};
+}
+
+function winnerIsDealer(memberId){
+  return members.find(x=>x.id===memberId)?.seat_index===room.dealer_index;
+}
+
+function updateScorePreview(){
+  if(!room || !members.length) return;
+
+  const rw=$("#ronWinner")?.value;
+  if(rw){
+    const han=Number($("#ronHan").value), fu=Number($("#ronFu").value);
+    const dealer=winnerIsDealer(rw);
+    const base=calcRon(han,fu,dealer);
+    const honba=room.honba*300;
+    $("#ronPreview").textContent=`点数：${fmt(base)}点${honba?` ＋ 本場${fmt(honba)}点`:""}（合計 ${fmt(base+honba)}点）`;
+    $("#ronRenchan").checked=dealer;
+  }
+
+  const tw=$("#tsumoWinner")?.value;
+  if(tw){
+    const han=Number($("#tsumoHan").value), fu=Number($("#tsumoFu").value);
+    const dealer=winnerIsDealer(tw);
+    const pay=calcTsumo(han,fu,dealer);
+    const hb=room.honba*100;
+    if(dealer){
+      $("#tsumoPreview").textContent=`支払い：全員 ${fmt(pay.child+hb)}点${hb?`（本場込み）`:""}`;
+    }else{
+      $("#tsumoPreview").textContent=`支払い：子 ${fmt(pay.child+hb)}点 / 親 ${fmt(pay.dealer+hb)}点${hb?`（本場込み）`:""}`;
+    }
+    $("#tsumoRenchan").checked=dealer;
+  }
+}
+
 $("#ronBtn").addEventListener("click",async()=>{
-  const w=$("#ronWinner").value,l=$("#ronLoser").value,p=Number($("#ronPoints").value);
-  if(w===l || !(p>0)) return showMsg("入力を確認してください。");
+  const w=$("#ronWinner").value,l=$("#ronLoser").value;
+  if(w===l) return showMsg("和了者と放銃者を別にしてください。");
+
+  const han=Number($("#ronHan").value), fu=Number($("#ronFu").value);
+  const base=calcRon(han,fu,winnerIsDealer(w));
+  const payment=base + room.honba*300;
   const pot=room.riichi_sticks*1000;
-  await applyEvent("ron",`${nameOf(w)} ロン +${fmt(p+pot)}`,{[w]:p+pot,[l]:-p},$("#ronRenchan").checked?"continue":"next",true);
+
+  await applyEvent(
+    "ron",
+    `${nameOf(w)} ${han}翻${fu}符 ロン +${fmt(payment+pot)}`,
+    {[w]:payment+pot,[l]:-payment},
+    $("#ronRenchan").checked?"continue":"next",
+    true
+  );
 });
+
 $("#tsumoBtn").addEventListener("click",async()=>{
-  const w=$("#tsumoWinner").value, child=Number($("#tsumoChild").value), dealerPay=Number($("#tsumoDealer").value);
-  if(!(child>0)) return showMsg("支払い点を入力してください。");
-  const wi=members.findIndex(x=>x.id===w), isDealer=members[wi].seat_index===room.dealer_index;
-  if(!isDealer && !(dealerPay>0)) return showMsg("親の支払い点を入力してください。");
-  const deltas={};let gain=room.riichi_sticks*1000;
+  const w=$("#tsumoWinner").value;
+  const han=Number($("#tsumoHan").value), fu=Number($("#tsumoFu").value);
+  const isDealer=winnerIsDealer(w);
+  const pay=calcTsumo(han,fu,isDealer);
+  const honbaEach=room.honba*100;
+  const deltas={};
+  let gain=room.riichi_sticks*1000;
+
   members.forEach(m=>{
     if(m.id===w) return;
-    const pay=isDealer?child:(m.seat_index===room.dealer_index?dealerPay:child);
-    deltas[m.id]=-pay;gain+=pay;
+    const amount=(isDealer ? pay.child : (m.seat_index===room.dealer_index ? pay.dealer : pay.child)) + honbaEach;
+    deltas[m.id]=-amount;
+    gain+=amount;
   });
   deltas[w]=gain;
-  await applyEvent("tsumo",`${nameOf(w)} ツモ +${fmt(gain)}`,deltas,$("#tsumoRenchan").checked?"continue":"next",true);
+
+  const payText=isDealer
+    ? `${fmt(pay.child+honbaEach)}オール`
+    : `${fmt(pay.child+honbaEach)} / ${fmt(pay.dealer+honbaEach)}`;
+
+  await applyEvent(
+    "tsumo",
+    `${nameOf(w)} ${han}翻${fu}符 ツモ ${payText}`,
+    deltas,
+    $("#tsumoRenchan").checked?"continue":"next",
+    true
+  );
+});
+
+["#ronWinner","#ronHan","#ronFu","#tsumoWinner","#tsumoHan","#tsumoFu"].forEach(s=>{
+  $(s)?.addEventListener("change",updateScorePreview);
 });
 $("#drawRenchanBtn").addEventListener("click",()=>applyEvent("draw","流局・親連荘",{},"continue",false));
 $("#drawNextBtn").addEventListener("click",()=>applyEvent("draw","流局・親流れ",{},"next",false));
