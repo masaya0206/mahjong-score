@@ -17,19 +17,63 @@
   </header>
 
   <main class="shell stack">
-    <section class="hero-card">
-      <p class="kicker">SHARED TABLE</p>
-      <h2>みんなのスマホで、同じ卓を見る。</h2>
-      <p class="muted">親・局・本場・供託・4人の点数をSupabase Realtimeで同期します。</p>
+    <section id="accountCard" class="card">
+      <div id="loggedOutArea">
+        <p class="kicker">ACCOUNT</p>
+        <h2>ログイン / 初回登録</h2>
+
+        <div class="mode-switch account-switch">
+          <button id="showLoginBtn" class="mode-btn active" type="button">ログイン</button>
+          <button id="showSignupBtn" class="mode-btn" type="button">初回登録</button>
+        </div>
+
+        <div id="loginArea">
+          <label class="field"><span>メールアドレス</span><input id="loginEmail" type="email" autocomplete="email"></label>
+          <label class="field"><span>パスワード</span><input id="loginPassword" type="password" autocomplete="current-password"></label>
+          <button id="loginBtn" class="primary-btn" type="button">ログイン</button>
+        </div>
+
+        <div id="signupArea" class="hidden">
+          <label class="field"><span>表示名</span><input id="signupName" maxlength="20" autocomplete="name" placeholder="例：まさや"></label>
+          <label class="field"><span>メールアドレス</span><input id="signupEmail" type="email" autocomplete="email"></label>
+          <label class="field"><span>パスワード</span><input id="signupPassword" type="password" minlength="6" autocomplete="new-password"></label>
+          <button id="signupBtn" class="primary-btn" type="button">アカウントを作成</button>
+        </div>
+        <p id="authMessage" class="message" aria-live="polite"></p>
+      </div>
+
+      <div id="loggedInArea" class="hidden">
+        <div class="split-head">
+          <div>
+            <p class="kicker">MY ACCOUNT</p>
+            <h2 id="myDisplayName">-</h2>
+            <p id="myEmail" class="muted"></p>
+          </div>
+          <button id="logoutBtn" class="small-btn" type="button">ログアウト</button>
+        </div>
+        <div id="myStats" class="account-stats"></div>
+      </div>
     </section>
 
-    <section class="card">
-      <p class="kicker">HOST</p>
-      <h2>新しい卓を作る</h2>
-      <label class="field">
-        <span>あなたの名前</span>
-        <input id="createName" maxlength="20" placeholder="例：まさや" autocomplete="name">
-      </label>
+    <section id="inviteCard" class="card hidden">
+      <p class="kicker">INVITATION</p>
+      <h2>招待された卓</h2>
+      <p id="inviteText" class="muted"></p>
+      <button id="openInviteBtn" class="primary-btn" type="button">この卓を開く</button>
+    </section>
+
+    <section id="createCard" class="card hidden">
+      <div class="split-head">
+        <div>
+          <p class="kicker">NEW TABLE</p>
+          <h2>4人を選んで卓を作る</h2>
+        </div>
+        <span id="selectedCount" class="selection-pill">0 / 4</span>
+      </div>
+
+      <label class="field"><span>メンバー検索</span><input id="createSearch" type="search" placeholder="名前で検索"></label>
+      <div id="createMemberList" class="account-member-list"></div>
+
       <label class="field">
         <span>開始持ち点</span>
         <select id="startingPoints">
@@ -37,32 +81,40 @@
           <option value="30000">30,000点</option>
         </select>
       </label>
-      <button id="createRoomBtn" class="primary-btn" type="button">卓を作る</button>
+
+      <div class="action-grid">
+        <button id="shuffleSelectionBtn" class="secondary-btn no-top-margin" type="button">席順をシャッフル</button>
+        <button id="createRoomBtn" class="primary-btn no-top-margin" type="button" disabled>この4人で卓を作る</button>
+      </div>
+      <p id="createMessage" class="message" aria-live="polite"></p>
+    </section>
+
+    <section id="myRoomsCard" class="card hidden">
+      <p class="kicker">MY TABLES</p>
+      <h2>あなたの卓</h2>
+      <div id="myRooms" class="list"></div>
     </section>
 
     <section class="card">
-      <p class="kicker">JOIN</p>
-      <h2>卓に参加する</h2>
-      <label class="field">
-        <span>卓コード</span>
-        <input id="roomCode" maxlength="6" inputmode="text" autocapitalize="characters" placeholder="例：7K3M2Q">
-      </label>
-      <label class="field">
-        <span>あなたの名前</span>
-        <input id="joinName" maxlength="20" placeholder="例：大和" autocomplete="name">
-      </label>
-      <button id="joinRoomBtn" class="secondary-btn" type="button">参加する</button>
-      <button id="scanQrBtn" class="qr-btn" type="button">QRで参加</button>
-      <p id="homeMessage" class="message" aria-live="polite"></p>
+      <div class="split-head">
+        <div>
+          <p class="kicker">MEMBERS</p>
+          <h2>登録メンバー</h2>
+        </div>
+        <span id="memberCount" class="selection-pill">0人</span>
+      </div>
+      <label class="field"><span>検索</span><input id="memberSearch" type="search" placeholder="名前で検索"></label>
+      <div id="allMembers" class="account-member-list"></div>
+      <p class="muted">メールアドレスは他のメンバーには表示されません。</p>
     </section>
 
     <section class="card">
-      <p class="kicker">RESUME</p>
-      <h2>この端末の最近の卓</h2>
-      <div id="recentRooms" class="list"></div>
+      <p class="kicker">QR JOIN</p>
+      <h2>QRから卓を開く</h2>
+      <button id="scanQrBtn" class="qr-btn" type="button">QRを読み取る</button>
+      <input id="roomCode" maxlength="6" class="hidden">
     </section>
   </main>
-
 
   <dialog id="qrDialog" class="app-dialog">
     <div class="dialog-panel">

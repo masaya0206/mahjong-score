@@ -307,3 +307,17 @@ h1,h2,h3,p{margin:0}h1{font-size:22px}h2{font-size:20px}h3{font-size:15px}
     min-height: 84px;
   }
 }
+
+
+/* ===== v1.9: accounts / registered members ===== */
+.account-switch{margin-top:14px}
+.account-stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.account-stats span{background:#f6f8fa;border:1px solid var(--line);border-radius:999px;padding:7px 10px;font-size:12px}
+.selection-pill{display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:5px 10px;border-radius:999px;background:#edf1f5;font-size:12px;font-weight:850}
+.account-member-list{display:grid;gap:7px;margin-top:10px;max-height:360px;overflow:auto}
+.account-member-row{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:13px;padding:9px 10px;background:#fff}
+.account-member-row input{width:20px;height:20px;flex:0 0 auto}
+.member-avatar{width:36px;height:36px;border-radius:50%;background:#edf1f5;display:grid;place-items:center;font-weight:900;flex:0 0 auto}
+.member-main{min-width:0;display:grid;gap:2px;flex:1}.member-main strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.member-main small{color:var(--muted);font-size:10px}
+.you-chip{font-size:10px;font-weight:850;border-radius:999px;background:var(--accent-soft);color:var(--accent);padding:4px 7px}
+.inline-action-error{margin-top:10px}

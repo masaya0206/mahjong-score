@@ -1,20 +1,20 @@
-import { requireSupabase, roomSession, rememberRoom, esc } from "./supabase.js";
+import { requireSupabase, rememberRoom, esc } from "./supabase.js";
 
 const $=s=>document.querySelector(s);
 const roomId=new URLSearchParams(location.search).get("id");
 if(!roomId) location.href="./index.html";
 
 const sb=requireSupabase();
-const session=roomSession(roomId);
+let currentUser=null;
 let room=null,members=[],events=[],pendingShuffle=null;
 let activeWinnerId=null, winMode="ron", selectedLoserId=null, riichiTargetId=null;
 let pressTimer=null, pressStart=null;
 
-function isHost(){return !!session?.hostKey}
-function canOperate(){return !!session?.memberId && !!session?.memberKey}
+function isHost(){return !!currentUser && room?.host_user_id===currentUser.id}
+function canOperate(){return !!currentUser && members.some(m=>m.user_id===currentUser.id)}
 function fmt(n){return Number(n).toLocaleString("ja-JP")}
 function nameOf(id){return members.find(m=>m.id===id)?.name||""}
-function me(){return members.find(m=>m.id===session?.memberId)||members[0]}
+function me(){return members.find(m=>m.user_id===currentUser?.id)||members[0]}
 function roundText(){
   const wind=room?.round_index<4?"東":"南";
   return `${wind}${((room?.round_index||0)%4)+1}局`;
@@ -32,12 +32,12 @@ function closeDialog(id){const d=$(id);if(d?.open)d.close()}
 async function loadAll(){
   const [{data:r,error:re},{data:m,error:me},{data:e,error:ee}]=await Promise.all([
     sb.from("mj_rooms").select("*").eq("id",roomId).single(),
-    sb.from("mj_room_members").select("id,room_id,name,seat_index,seat_label,score,joined_at,is_riichi,is_yakitori").eq("room_id",roomId).order("seat_index"),
+    sb.from("mj_room_members").select("id,room_id,user_id,name,seat_index,seat_label,score,joined_at,is_riichi,is_yakitori").eq("room_id",roomId).order("seat_index"),
     sb.from("mj_score_events").select("id,room_id,event_type,label,created_at,operator_name").eq("room_id",roomId).order("created_at",{ascending:false}).limit(40)
   ]);
   if(re) throw re;if(me) throw me;if(ee) throw ee;
   room=r;members=m;events=e;
-  if(session) rememberRoom(room.id,room.room_code,session.hostKey||null,session.memberId||null,session.memberKey||null);
+  rememberRoom(room.id,room.room_code);
   render();
 }
 
@@ -177,27 +177,32 @@ async function drawQr(){
   }catch{}
 }
 
+function showActionError(text){
+  showToast(text);
+  const open=document.querySelector("dialog[open] .dialog-panel");
+  if(open){
+    let el=open.querySelector(".inline-action-error");
+    if(!el){el=document.createElement("p");el.className="message inline-action-error";open.appendChild(el);}
+    el.textContent=text;
+  }
+}
 function ensureMemberAuth(){
-  if(!canOperate()) throw new Error("この端末の参加者認証がありません。SQL更新後に新しい卓へ参加し直してください。");
+  if(!currentUser) throw new Error("ログインしてください。");
+  if(!canOperate()) throw new Error("このアカウントはこの卓の参加メンバーではありません。");
 }
 async function memberRpc(fn,args={}){
   try{
     ensureMemberAuth();
-    const {error}=await sb.rpc(fn,{
-      p_room_id:roomId,
-      p_operator_id:session.memberId,
-      p_member_key:session.memberKey,
-      ...args
-    });
+    const {error}=await sb.rpc(fn,{p_room_id:roomId,...args});
     if(error) throw error;
     await loadAll();
     return true;
-  }catch(e){showToast(e.message);return false}
+  }catch(e){showActionError(e.message);return false}
 }
 async function hostRpc(fn,args={}){
-  if(!session?.hostKey){showToast("ホストだけが操作できます。");return false}
-  const {error}=await sb.rpc(fn,{p_room_id:roomId,p_host_key:session.hostKey,...args});
-  if(error){showToast(error.message);return false}
+  if(!isHost()){showActionError("卓を作成した人だけが操作できます。");return false}
+  const {error}=await sb.rpc(fn,{p_room_id:roomId,...args});
+  if(error){showActionError(error.message);return false}
   await loadAll();return true;
 }
 
@@ -215,7 +220,7 @@ function openRiichi(memberId){
   openDialog("#riichiDialog");
 }
 $("#confirmRiichiBtn").addEventListener("click",async()=>{
-  if(await memberRpc("mj_member_riichi",{p_target_member_id:riichiTargetId})) closeDialog("#riichiDialog");
+  if(await memberRpc("mj_account_riichi",{p_target_member_id:riichiTargetId})) closeDialog("#riichiDialog");
 });
 
 /* ---------- 点数計算 ---------- */
@@ -284,7 +289,7 @@ $("#confirmWinBtn").addEventListener("click",async()=>{
     deltas[activeWinnerId]=gain;
     label=`${nameOf(activeWinnerId)} ${han}翻${fu}符 ツモ`;
   }
-  const ok=await memberRpc("mj_member_apply_event",{
+  const ok=await memberRpc("mj_account_apply_event",{
     p_event_type:winMode,p_label:label,p_deltas:deltas,p_advance:advance,p_clear_riichi:true
   });
   if(ok) closeDialog("#winDialog");
@@ -293,12 +298,12 @@ $("#confirmWinBtn").addEventListener("click",async()=>{
 /* ---------- その他操作 ---------- */
 $("#centerButton").addEventListener("click",()=>openDialog("#utilityDialog"));
 $("#closeUtilityBtn").addEventListener("click",()=>closeDialog("#utilityDialog"));
-$("#drawRenchanBtn").addEventListener("click",async()=>{if(await memberRpc("mj_member_apply_event",{p_event_type:"draw",p_label:"流局・親連荘",p_deltas:{},p_advance:"continue",p_clear_riichi:false}))closeDialog("#utilityDialog")});
-$("#drawNextBtn").addEventListener("click",async()=>{if(await memberRpc("mj_member_apply_event",{p_event_type:"draw",p_label:"流局・親流れ",p_deltas:{},p_advance:"next",p_clear_riichi:false}))closeDialog("#utilityDialog")});
+$("#drawRenchanBtn").addEventListener("click",async()=>{if(await memberRpc("mj_account_apply_event",{p_event_type:"draw",p_label:"流局・親連荘",p_deltas:{},p_advance:"continue",p_clear_riichi:false}))closeDialog("#utilityDialog")});
+$("#drawNextBtn").addEventListener("click",async()=>{if(await memberRpc("mj_account_apply_event",{p_event_type:"draw",p_label:"流局・親流れ",p_deltas:{},p_advance:"next",p_clear_riichi:false}))closeDialog("#utilityDialog")});
 $("#historyBtn").addEventListener("click",()=>{closeDialog("#utilityDialog");renderEventLog();openDialog("#historyDialog")});
 $("#closeHistoryBtn").addEventListener("click",()=>closeDialog("#historyDialog"));
-$("#undoBtn").addEventListener("click",async()=>{if(await memberRpc("mj_member_undo_last",{}))closeDialog("#utilityDialog")});
-$("#finishBtn").addEventListener("click",async()=>{if(confirm("この半荘を終了しますか？")){if(await hostRpc("mj_finish_hand",{p_reason:"manual"}))closeDialog("#utilityDialog")}});
+$("#undoBtn").addEventListener("click",async()=>{if(await memberRpc("mj_account_undo_last",{}))closeDialog("#utilityDialog")});
+$("#finishBtn").addEventListener("click",async()=>{if(confirm("この半荘を終了しますか？")){if(await hostRpc("mj_account_finish_hand",{p_reason:"manual"}))closeDialog("#utilityDialog")}});
 
 /* ---------- チョンボ ---------- */
 function updateChomboPreview(){
@@ -339,7 +344,7 @@ $("#confirmChomboBtn").addEventListener("click",async()=>{
     });
   }
   deltas[offender.id]=-total;
-  const ok=await memberRpc("mj_member_apply_event",{p_event_type:"chombo",p_label:`${offender.name} チョンボ -${fmt(total)}点`,p_deltas:deltas,p_advance:"none",p_clear_riichi:false});
+  const ok=await memberRpc("mj_account_apply_event",{p_event_type:"chombo",p_label:`${offender.name} チョンボ -${fmt(total)}点`,p_deltas:deltas,p_advance:"none",p_clear_riichi:false});
   if(ok)closeDialog("#chomboDialog");
 });
 
@@ -352,7 +357,7 @@ $("#closeManualBtn").addEventListener("click",()=>closeDialog("#manualDialog"));
 $("#confirmManualBtn").addEventListener("click",async()=>{
   const from=$("#manualFrom").value,to=$("#manualTo").value,p=Number($("#manualPoints").value);
   if(from===to||!(p>0)){showToast("入力を確認してください。");return}
-  const ok=await memberRpc("mj_member_apply_event",{p_event_type:"manual",p_label:`${nameOf(from)} → ${nameOf(to)} ${fmt(p)}点`,p_deltas:{[from]:-p,[to]:p},p_advance:"none",p_clear_riichi:false});
+  const ok=await memberRpc("mj_account_apply_event",{p_event_type:"manual",p_label:`${nameOf(from)} → ${nameOf(to)} ${fmt(p)}点`,p_deltas:{[from]:-p,[to]:p},p_advance:"none",p_clear_riichi:false});
   if(ok)closeDialog("#manualDialog");
 });
 
@@ -427,9 +432,9 @@ $("#copyInviteBtn").addEventListener("click",async()=>{
   try{await navigator.clipboard.writeText(url);$("#copyInviteBtn").textContent="コピーしました";setTimeout(()=>$("#copyInviteBtn").textContent="招待リンクをコピー",1200)}
   catch{prompt("このURLを共有してください",url)}
 });
-$("#startGameBtn").addEventListener("click",()=>hostRpc("mj_start_room",{}));
-$("#startNextGameBtn").addEventListener("click",()=>hostRpc("mj_start_next_game",{}));
-$("#keepSeatsBtn").addEventListener("click",()=>hostRpc("mj_continue_same_seats",{}));
+$("#startGameBtn").addEventListener("click",()=>hostRpc("mj_account_start_room",{}));
+$("#startNextGameBtn").addEventListener("click",()=>hostRpc("mj_account_start_next_game",{}));
+$("#keepSeatsBtn").addEventListener("click",()=>hostRpc("mj_account_continue_same_seats",{}));
 function makeShuffle(){
   const shuffled=[...members].sort(()=>Math.random()-.5);
   pendingShuffle=shuffled.map((m,i)=>({member_id:m.id,seat_index:i}));
@@ -442,8 +447,8 @@ function makeShuffle(){
   $("#shuffleResultArea").classList.remove("hidden");
 }
 $("#shuffleSeatsBtn").addEventListener("click",makeShuffle);$("#reshuffleBtn").addEventListener("click",makeShuffle);
-$("#confirmShuffleBtn").addEventListener("click",async()=>{if(pendingShuffle){await hostRpc("mj_apply_seat_shuffle",{p_seats:pendingShuffle});pendingShuffle=null}});
-$("#endSessionBtn").addEventListener("click",async()=>{if(confirm("今日の対局を終了しますか？"))await hostRpc("mj_end_session",{})});
+$("#confirmShuffleBtn").addEventListener("click",async()=>{if(pendingShuffle){await hostRpc("mj_account_apply_seat_shuffle",{p_seats:pendingShuffle});pendingShuffle=null}});
+$("#endSessionBtn").addEventListener("click",async()=>{if(confirm("今日の対局を終了しますか？"))await hostRpc("mj_account_end_session",{})});
 
 /* ---------- subscriptions ---------- */
 function subscribe(){
@@ -451,4 +456,13 @@ function subscribe(){
   sb.channel(`members-${roomId}`).on("postgres_changes",{event:"*",schema:"public",table:"mj_room_members",filter:`room_id=eq.${roomId}`},loadAll).subscribe();
   sb.channel(`events-${roomId}`).on("postgres_changes",{event:"*",schema:"public",table:"mj_score_events",filter:`room_id=eq.${roomId}`},loadAll).subscribe();
 }
-loadAll().then(subscribe).catch(e=>showToast(e.message));
+(async()=>{
+  const {data:{user}}=await sb.auth.getUser();
+  currentUser=user||null;
+  if(!currentUser){location.href="./index.html";return;}
+  await loadAll();
+  if(!members.some(m=>m.user_id===currentUser.id)){
+    showActionError("このアカウントはこの卓の参加メンバーではありません。");
+  }
+  subscribe();
+})().catch(e=>showActionError(e.message));
