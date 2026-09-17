@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <title>Mahjong Score</title>
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">REAL MAHJONG SCORE</p>
+      <h1>麻雀スコア</h1>
+    </div>
+    <a class="ghost-btn" href="./history.html">戦績</a>
+  </header>
+
+  <main class="container stack">
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">PLAYERS</p>
+          <h2>メンバー</h2>
+        </div>
+        <button id="addPlayerBtn" class="secondary-btn" type="button">＋ 追加</button>
+      </div>
+      <div id="playerList" class="player-list"></div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">NEW GAME</p>
+          <h2>半荘を始める</h2>
+        </div>
+      </div>
+
+      <label class="field">
+        <span>開始持ち点</span>
+        <select id="startingPoints">
+          <option value="25000" selected>25,000点</option>
+          <option value="30000">30,000点</option>
+        </select>
+      </label>
+
+      <p class="helper">参加する4人を選択してください。</p>
+      <div id="selectedCount" class="selection-count">0 / 4人選択</div>
+
+      <button id="startGameBtn" class="primary-btn" type="button" disabled>この4人で開始</button>
+      <p id="homeMessage" class="message" aria-live="polite"></p>
+    </section>
+
+    <section id="activeGameCard" class="card hidden">
+      <p class="eyebrow">ACTIVE</p>
+      <h2>進行中の半荘があります</h2>
+      <p id="activeGameText" class="helper"></p>
+      <a class="primary-btn link-btn" href="./game.html">対局画面へ戻る</a>
+    </section>
+  </main>
+
+  <dialog id="playerDialog" class="dialog">
+    <form method="dialog" id="playerForm" class="dialog-card">
+      <div class="section-head">
+        <h2>メンバー追加</h2>
+        <button class="icon-btn" value="cancel" aria-label="閉じる">×</button>
+      </div>
+      <label class="field">
+        <span>名前</span>
+        <input id="playerName" maxlength="20" autocomplete="off" placeholder="例：まさや">
+      </label>
+      <button id="savePlayerBtn" class="primary-btn" type="submit" value="default">追加する</button>
+      <p id="playerDialogMessage" class="message" aria-live="polite"></p>
+    </form>
+  </dialog>
+
+  <script type="module" src="./js/index.js"></script>
+</body>
+</html>

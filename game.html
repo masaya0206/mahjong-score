@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <title>対局中 | Mahjong Score</title>
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <header class="app-header">
+    <a class="ghost-btn" href="./index.html">← ホーム</a>
+    <div class="header-center">
+      <p id="roundLabel" class="eyebrow">東1局</p>
+      <h1 id="dealerLabel">親：-</h1>
+    </div>
+    <button id="undoBtn" class="ghost-btn" type="button">↶ 戻す</button>
+  </header>
+
+  <main class="container stack">
+    <section class="status-bar">
+      <div><span>本場</span><strong id="honbaLabel">0</strong></div>
+      <div><span>供託</span><strong id="riichiLabel">0</strong></div>
+      <div><span>局</span><strong id="roundMini">東1</strong></div>
+    </section>
+
+    <section id="scoreBoard" class="score-grid"></section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">SCORE EVENT</p>
+          <h2>点数を動かす</h2>
+        </div>
+      </div>
+
+      <div class="segmented" role="group" aria-label="イベント種別">
+        <button type="button" class="seg-btn active" data-type="ron">ロン</button>
+        <button type="button" class="seg-btn" data-type="tsumo">ツモ</button>
+        <button type="button" class="seg-btn" data-type="manual">手動</button>
+        <button type="button" class="seg-btn" data-type="draw">流局</button>
+      </div>
+
+      <div id="ronPanel" class="event-panel">
+        <div class="two-col">
+          <label class="field"><span>和了者</span><select id="ronWinner"></select></label>
+          <label class="field"><span>放銃者</span><select id="ronLoser"></select></label>
+        </div>
+        <label class="field">
+          <span>点数</span>
+          <input id="ronPoints" type="number" min="100" step="100" inputmode="numeric" placeholder="例：7700">
+        </label>
+        <label class="check-row"><input id="ronDealerContinues" type="checkbox"> 親が和了（連荘）</label>
+        <button id="confirmRon" class="primary-btn" type="button">ロンを確定</button>
+      </div>
+
+      <div id="tsumoPanel" class="event-panel hidden">
+        <label class="field"><span>和了者</span><select id="tsumoWinner"></select></label>
+        <div class="two-col">
+          <label class="field"><span>子の支払い</span><input id="tsumoChildPay" type="number" min="100" step="100" inputmode="numeric" placeholder="例：1000"></label>
+          <label class="field"><span>親の支払い</span><input id="tsumoDealerPay" type="number" min="100" step="100" inputmode="numeric" placeholder="例：2000"></label>
+        </div>
+        <p class="helper">親ツモの場合は「子の支払い」だけ使います（3人が同額支払い）。</p>
+        <label class="check-row"><input id="tsumoDealerContinues" type="checkbox"> 親が和了（連荘）</label>
+        <button id="confirmTsumo" class="primary-btn" type="button">ツモを確定</button>
+      </div>
+
+      <div id="manualPanel" class="event-panel hidden">
+        <div class="two-col">
+          <label class="field"><span>支払う人</span><select id="manualFrom"></select></label>
+          <label class="field"><span>受け取る人</span><select id="manualTo"></select></label>
+        </div>
+        <label class="field"><span>点数</span><input id="manualPoints" type="number" min="100" step="100" inputmode="numeric" placeholder="例：1000"></label>
+        <button id="confirmManual" class="primary-btn" type="button">移動を確定</button>
+      </div>
+
+      <div id="drawPanel" class="event-panel hidden">
+        <label class="check-row"><input id="drawDealerContinues" type="checkbox" checked> 親がテンパイ（連荘）</label>
+        <button id="confirmDraw" class="primary-btn" type="button">流局を確定</button>
+      </div>
+
+      <p id="gameMessage" class="message" aria-live="polite"></p>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">ROUND</p>
+          <h2>局の操作</h2>
+        </div>
+      </div>
+      <div class="action-grid">
+        <button id="addRiichiBtn" class="secondary-btn" type="button">＋ リーチ棒</button>
+        <button id="removeRiichiBtn" class="secondary-btn" type="button">− 供託1本</button>
+        <button id="nextRoundBtn" class="secondary-btn" type="button">次局へ</button>
+        <button id="finishGameBtn" class="danger-btn" type="button">半荘終了</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <p class="eyebrow">LOG</p>
+      <h2>操作履歴</h2>
+      <div id="eventLog" class="log-list"></div>
+    </section>
+  </main>
+
+  <script type="module" src="./js/game.js"></script>
+</body>
+</html>
